@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RepoRadar.Core/RepoRadar.Core.csproj" />
+    <Project Path="src/RepoRadar.App/RepoRadar.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/RepoRadar.Tests/RepoRadar.Tests.csproj" />
+  </Folder>
+</Solution>

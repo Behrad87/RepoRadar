@@ -1,0 +1,28 @@
+## Visual Studio / .NET
+[Bb]in/
+[Oo]bj/
+[Tt]est[Rr]esults/
+[Bb]uild/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+## JetBrains Rider / VS Code
+.idea/
+.vscode/
+*.sln.iml
+
+## OS generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+## Logs and temporary files
+*.log
+*.tmp
+publish/
+release/

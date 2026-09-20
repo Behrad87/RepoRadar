@@ -13,6 +13,13 @@
         WindowStartupLocation="CenterScreen"
         Icon="pack://application:,,,/Assets/icon.ico">
 
+    <Window.InputBindings>
+        <KeyBinding Key="R" Modifiers="Ctrl" Command="{Binding ScanCommand}" />
+        <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding ToggleFilterOnlyDirtyCommand}" />
+        <KeyBinding Key="OemComma" Modifiers="Ctrl" Command="{Binding OpenSettingsCommand}" />
+        <KeyBinding Key="Escape" Command="{Binding ClearSearchCommand}" />
+    </Window.InputBindings>
+
     <Window.Resources>
         <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
         <conv:BoolToVisibilityConverter x:Key="InverseBoolToVis" Invert="True" />
@@ -20,10 +27,10 @@
         <conv:NonEmptyStringToVisibilityConverter x:Key="StringNotEmptyToVis" />
         <conv:DirtyStateToBorderBrushConverter x:Key="DirtyToBrush" />
 
-        <Style x:Key="StatPill" TargetType="Border">
+        <Style x:Key="StatCard" TargetType="Border">
             <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Padding" Value="12,8" />
-            <Setter Property="Margin" Value="0,0,10,0" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="Margin" Value="4,0" />
         </Style>
 
         <Style x:Key="BadgeBorder" TargetType="Border">
@@ -50,30 +57,31 @@
         <!-- MAIN DASHBOARD CONTENT -->
         <Grid Grid.Row="1" Margin="20,10,20,10">
             <Grid.RowDefinitions>
-                <!-- Header Stats Cards -->
+                <!-- Row 0: App Brand & Action Buttons Header -->
                 <RowDefinition Height="Auto" />
-                <!-- Filter & Search Toolbar -->
+                <!-- Row 1: Overview Metrics Grid -->
                 <RowDefinition Height="Auto" />
-                <!-- Repositories List / Empty State -->
+                <!-- Row 2: Filter & Search Toolbar -->
+                <RowDefinition Height="Auto" />
+                <!-- Row 3: Repositories List / Empty State -->
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- 1. HEADER & METRICS -->
-            <Grid Grid.Row="0" Margin="0,0,0,16">
+            <!-- 1. HEADER (Brand & Actions) -->
+            <Grid Grid.Row="0" Margin="0,0,0,14">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <!-- App Brand -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,24,0">
-                    <Border CornerRadius="10" Width="44" Height="44" Margin="0,0,14,0" Background="#111827" ClipToBounds="True">
-                        <Image Source="pack://application:,,,/Assets/icon.png" Width="44" Height="44" RenderOptions.BitmapScalingMode="HighQuality" />
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border CornerRadius="10" Width="42" Height="42" Margin="0,0,14,0" Background="#111827" ClipToBounds="True">
+                        <Image Source="pack://application:,,,/Assets/icon.png" Width="42" Height="42" RenderOptions.BitmapScalingMode="HighQuality" />
                     </Border>
                     <StackPanel VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="RepoRadar" FontSize="22" FontWeight="Bold" Foreground="#F8FAFC" />
+                            <TextBlock Text="RepoRadar" FontSize="20" FontWeight="Bold" Foreground="#F8FAFC" />
                             <Border Background="#1E293B" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
                                 <TextBlock Text="v1.0" FontSize="11" Foreground="#94A3B8" FontWeight="SemiBold" />
                             </Border>
@@ -82,67 +90,137 @@
                     </StackPanel>
                 </StackPanel>
 
-                <!-- Metric Summary Pills -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <!-- Total Repos -->
-                    <Border Style="{StaticResource StatPill}" Background="#1E293B" BorderBrush="#334155" BorderThickness="1">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📁" Margin="0,0,6,0" VerticalAlignment="Center" />
-                            <StackPanel>
-                                <TextBlock Text="{Binding TotalReposCount, StringFormat='{}{0} Repos'}" FontWeight="Bold" Foreground="#E2E8F0" FontSize="13" />
-                                <TextBlock Text="Monitored" FontSize="10" Foreground="#94A3B8" />
-                            </StackPanel>
+                <!-- Quick Actions (Star + Support Button) -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- GitHub Star Button -->
+                    <ui:Button Appearance="Secondary" Margin="0,0,10,0" Padding="12,6" Command="{Binding OpenGitHubCommand}" ToolTip="Star RepoRadar on GitHub" Cursor="Hand">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:SymbolIcon Symbol="Star24" Foreground="#FFD700" Margin="0,0,6,0" FontSize="14" />
+                            <TextBlock Text="Star on GitHub" FontWeight="SemiBold" FontSize="12" />
                         </StackPanel>
-                    </Border>
+                    </ui:Button>
 
-                    <!-- Dirty Repos -->
-                    <Border Style="{StaticResource StatPill}" Background="#3D1A04" BorderBrush="#F59E0B" BorderThickness="1">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="⚠️" Margin="0,0,6,0" VerticalAlignment="Center" />
-                            <StackPanel>
-                                <TextBlock Text="{Binding DirtyReposCount, StringFormat='{}{0} Dirty'}" FontWeight="Bold" Foreground="#FBBF24" FontSize="13" />
-                                <TextBlock Text="Require Action" FontSize="10" Foreground="#FCD34D" />
-                            </StackPanel>
+                    <!-- Support Button Dropdown -->
+                    <ui:Button x:Name="SupportButton" Appearance="Primary" Padding="14,6" Click="OnSupportButtonClicked" Cursor="Hand" ToolTip="Support RepoRadar development">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <ui:SymbolIcon Symbol="Heart24" Foreground="#FF5E7E" Margin="0,0,8,0" FontSize="14" />
+                            <TextBlock Text="Support RepoRadar" FontWeight="SemiBold" FontSize="12" />
+                            <ui:SymbolIcon Symbol="ChevronDown24" FontSize="10" Margin="8,2,0,0" VerticalAlignment="Center" Foreground="#E2E8F0" />
                         </StackPanel>
-                    </Border>
-
-                    <!-- Unpushed Commits -->
-                    <Border Style="{StaticResource StatPill}" Background="#0C364D" BorderBrush="#06B6D4" BorderThickness="1">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="⬆️" Margin="0,0,6,0" VerticalAlignment="Center" />
-                            <StackPanel>
-                                <TextBlock Text="{Binding TotalUnpushedCount, StringFormat='{}{0} Unpushed'}" FontWeight="Bold" Foreground="#67E8F9" FontSize="13" />
-                                <TextBlock Text="Ahead of Remote" FontSize="10" Foreground="#A5F3FC" />
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Uncommitted Changes -->
-                    <Border Style="{StaticResource StatPill}" Background="#3E0F23" BorderBrush="#F43F5E" BorderThickness="1">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📝" Margin="0,0,6,0" VerticalAlignment="Center" />
-                            <StackPanel>
-                                <TextBlock Text="{Binding TotalUncommittedCount, StringFormat='{}{0} Modified'}" FontWeight="Bold" Foreground="#FDA4AF" FontSize="13" />
-                                <TextBlock Text="Uncommitted" FontSize="10" Foreground="#FECDD3" />
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Stashes -->
-                    <Border Style="{StaticResource StatPill}" Background="#2E1065" BorderBrush="#A855F7" BorderThickness="1">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="📦" Margin="0,0,6,0" VerticalAlignment="Center" />
-                            <StackPanel>
-                                <TextBlock Text="{Binding TotalStashesCount, StringFormat='{}{0} Stashes'}" FontWeight="Bold" Foreground="#D8B4FE" FontSize="13" />
-                                <TextBlock Text="Forgotten" FontSize="10" Foreground="#E9D5FF" />
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
+                        <ui:Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="💖 Sponsor on GitHub (Wall of Fame)" Command="{Binding OpenSponsorsCommand}">
+                                    <MenuItem.Icon>
+                                        <ui:SymbolIcon Symbol="Heart24" Foreground="#FF5E7E" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="☕ Tip on Ko-fi (Buy Me a Coffee - $3)" Command="{Binding OpenKofiCommand}">
+                                    <MenuItem.Icon>
+                                        <ui:SymbolIcon Symbol="DrinkCoffee24" Foreground="#FFA500" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="🇮🇷 ری‌میت - پرداخت ریالی شتاب" Command="{Binding OpenReymitCommand}">
+                                    <MenuItem.Icon>
+                                        <ui:SymbolIcon Symbol="Money24" Foreground="#10B981" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <Separator />
+                                <MenuItem Header="⭐ Star on GitHub" Command="{Binding OpenGitHubCommand}">
+                                    <MenuItem.Icon>
+                                        <ui:SymbolIcon Symbol="Star24" Foreground="#FFD700" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Header="🎁 Open Support Dialog..." Command="{Binding OpenDonationDialogCommand}">
+                                    <MenuItem.Icon>
+                                        <ui:SymbolIcon Symbol="Gift24" Foreground="#38BDF8" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </ui:Button.ContextMenu>
+                    </ui:Button>
                 </StackPanel>
             </Grid>
 
-            <!-- 2. TOOLBAR: Search & Filters -->
-            <Grid Grid.Row="1" Margin="0,0,0,14">
+            <!-- 2. METRICS OVERVIEW (UniformGrid across full width) -->
+            <UniformGrid Grid.Row="1" Columns="5" Margin="-4,0,-4,16">
+                <!-- Total Repos -->
+                <Border Style="{StaticResource StatCard}" Background="#1E293B" BorderBrush="#334155" BorderThickness="1" ToolTip="Total repositories discovered across all monitored workspaces">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="📁" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding TotalReposCount, StringFormat='{}{0} Repos'}" FontWeight="Bold" Foreground="#E2E8F0" FontSize="14" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="Monitored" FontSize="11" Foreground="#94A3B8" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Dirty Repos -->
+                <Border Style="{StaticResource StatCard}" Background="#3D1A04" BorderBrush="#F59E0B" BorderThickness="1" ToolTip="Repositories with uncommitted files, unpushed commits, or stashes">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="⚠️" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding DirtyReposCount, StringFormat='{}{0} Dirty'}" FontWeight="Bold" Foreground="#FBBF24" FontSize="14" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="Require Action" FontSize="11" Foreground="#FCD34D" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Unpushed Commits -->
+                <Border Style="{StaticResource StatCard}" Background="#0C364D" BorderBrush="#06B6D4" BorderThickness="1" ToolTip="Total commits waiting to be pushed to remote branches">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="⬆️" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding TotalUnpushedCount, StringFormat='{}{0} Unpushed'}" FontWeight="Bold" Foreground="#67E8F9" FontSize="14" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="Ahead of Remote" FontSize="11" Foreground="#A5F3FC" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Uncommitted Changes -->
+                <Border Style="{StaticResource StatCard}" Background="#3E0F23" BorderBrush="#F43F5E" BorderThickness="1" ToolTip="Modified, staged, or untracked files in local working trees">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="📝" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding TotalUncommittedCount, StringFormat='{}{0} Modified'}" FontWeight="Bold" Foreground="#FDA4AF" FontSize="14" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="Uncommitted" FontSize="11" Foreground="#FECDD3" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Stashes -->
+                <Border Style="{StaticResource StatCard}" Background="#2E1065" BorderBrush="#A855F7" BorderThickness="1" ToolTip="Git stashes saved across your local repositories">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="📦" FontSize="18" Margin="0,0,10,0" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding TotalStashesCount, StringFormat='{}{0} Stashes'}" FontWeight="Bold" Foreground="#D8B4FE" FontSize="14" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="Forgotten" FontSize="11" Foreground="#E9D5FF" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </UniformGrid>
+
+            <!-- 3. TOOLBAR: Search & Filters -->
+            <Grid Grid.Row="2" Margin="0,0,0,14">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -203,8 +281,8 @@
                 </ui:Button>
             </Grid>
 
-            <!-- 3. REPOSITORIES LIST -->
-            <Grid Grid.Row="2">
+            <!-- 4. REPOSITORIES LIST -->
+            <Grid Grid.Row="3">
                 <!-- Repository Cards List -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl ItemsSource="{Binding DisplayRepositories}" VirtualizingPanel.IsVirtualizing="True">
@@ -253,21 +331,24 @@
                                             </StackPanel>
 
                                             <!-- Status Badges -->
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
                                                 <!-- Clean Badge -->
                                                 <Border Style="{StaticResource BadgeBorder}" Background="#064E3B"
+                                                        ToolTip="Working tree is clean and local branch is synchronized with remote"
                                                         Visibility="{Binding IsClean, Converter={StaticResource BoolToVis}}">
                                                     <TextBlock Text="✓ Clean &amp; Synced" Foreground="#34D399" FontSize="11" FontWeight="Bold" />
                                                 </Border>
 
                                                 <!-- Modified / Uncommitted Badge -->
                                                 <Border Style="{StaticResource BadgeBorder}" Background="#4C0519"
+                                                        ToolTip="You have unstaged or staged file modifications in this repository"
                                                         Visibility="{Binding ModifiedCount, Converter={StaticResource IntToVis}}">
                                                     <TextBlock Text="{Binding ModifiedCount, StringFormat='⚠️ {0} Modified'}" Foreground="#FB7185" FontSize="11" FontWeight="Bold" />
                                                 </Border>
 
                                                 <!-- Untracked Badge -->
                                                 <Border Style="{StaticResource BadgeBorder}" Background="#451A03"
+                                                        ToolTip="You have untracked new files in this repository"
                                                         Visibility="{Binding UntrackedCount, Converter={StaticResource IntToVis}}">
                                                     <TextBlock Text="{Binding UntrackedCount, StringFormat='❓ {0} Untracked'}" Foreground="#FBBF24" FontSize="11" FontWeight="Bold" />
                                                 </Border>
@@ -275,12 +356,14 @@
                                                 <!-- Unpushed Commits Badge -->
                                                 <Border Style="{StaticResource BadgeBorder}" Background="#083344"
                                                         BorderBrush="#06B6D4" BorderThickness="1"
+                                                        ToolTip="You have unpushed commits ahead of upstream remote. Push before shutdown!"
                                                         Visibility="{Binding AheadCount, Converter={StaticResource IntToVis}}">
                                                     <TextBlock Text="{Binding AheadCount, StringFormat='⬆ {0} Unpushed'}" Foreground="#22D3EE" FontSize="11" FontWeight="Bold" />
                                                 </Border>
 
                                                 <!-- Behind Commits Badge -->
                                                 <Border Style="{StaticResource BadgeBorder}" Background="#2E1065"
+                                                        ToolTip="Upstream remote has commits waiting to be pulled into this branch"
                                                         Visibility="{Binding BehindCount, Converter={StaticResource IntToVis}}">
                                                     <TextBlock Text="{Binding BehindCount, StringFormat='⬇ {0} Behind'}" Foreground="#C084FC" FontSize="11" FontWeight="Bold" />
                                                 </Border>
@@ -288,10 +371,11 @@
                                                 <!-- Stashes Badge -->
                                                 <Border Style="{StaticResource BadgeBorder}" Background="#3B0764"
                                                         BorderBrush="#A855F7" BorderThickness="1"
+                                                        ToolTip="Git stashes saved in this repository. Remember to pop or drop."
                                                         Visibility="{Binding StashCount, Converter={StaticResource IntToVis}}">
                                                     <TextBlock Text="{Binding StashCount, StringFormat='📦 {0} Stash'}" Foreground="#E879F9" FontSize="11" FontWeight="Bold" />
                                                 </Border>
-                                            </StackPanel>
+                                            </WrapPanel>
                                         </Grid>
 
                                         <!-- ROW 2: Path & Last Commit Preview -->
@@ -302,24 +386,24 @@
                                             </Grid.ColumnDefinitions>
 
                                             <!-- Folder Path -->
-                                            <TextBlock Grid.Column="0" Text="{Binding Path}" FontSize="12" Foreground="#64748B" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="0" Text="{Binding Path}" FontSize="12" Foreground="#64748B" TextTrimming="CharacterEllipsis" ToolTip="{Binding Path}" />
 
                                             <!-- Last Commit Details -->
-                                            <TextBlock Grid.Column="1" Text="{Binding CommitPreview}" FontSize="11" Foreground="#94A3B8" TextAlignment="Right" />
+                                            <TextBlock Grid.Column="1" Text="{Binding CommitPreview}" FontSize="11" Foreground="#94A3B8" TextAlignment="Right" TextTrimming="CharacterEllipsis" ToolTip="{Binding CommitPreview}" />
                                         </Grid>
 
                                         <!-- ROW 3: Action Buttons Bar -->
                                         <Grid Grid.Row="2" Margin="0,4,0,0">
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
 
                                             <!-- Launcher Buttons -->
-                                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                            <WrapPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <!-- Open in VS Code -->
-                                                <Button Command="{Binding OpenInVSCodeCommand}" Margin="0,0,6,0" Padding="10,4" Background="#1E293B" Foreground="#E2E8F0" Cursor="Hand">
+                                                <Button Command="{Binding OpenInVSCodeCommand}" Margin="0,0,6,4" Padding="10,4" Background="#1E293B" Foreground="#E2E8F0" Cursor="Hand" ToolTip="Open in Visual Studio Code (code)">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="💻 " FontSize="12" />
                                                         <TextBlock Text="VS Code" FontSize="12" FontWeight="SemiBold" />
@@ -327,7 +411,7 @@
                                                 </Button>
 
                                                 <!-- Open in Rider -->
-                                                <Button Command="{Binding OpenInRiderCommand}" Margin="0,0,6,0" Padding="10,4" Background="#1E293B" Foreground="#E2E8F0" Cursor="Hand">
+                                                <Button Command="{Binding OpenInRiderCommand}" Margin="0,0,6,4" Padding="10,4" Background="#1E293B" Foreground="#E2E8F0" Cursor="Hand" ToolTip="Open in JetBrains Rider (rider)">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="🐎 " FontSize="12" />
                                                         <TextBlock Text="Rider" FontSize="12" FontWeight="SemiBold" />
@@ -335,7 +419,7 @@
                                                 </Button>
 
                                                 <!-- Open in Terminal -->
-                                                <Button Command="{Binding OpenInTerminalCommand}" Margin="0,0,6,0" Padding="10,4" Background="#1E293B" Foreground="#E2E8F0" Cursor="Hand">
+                                                <Button Command="{Binding OpenInTerminalCommand}" Margin="0,0,6,4" Padding="10,4" Background="#1E293B" Foreground="#E2E8F0" Cursor="Hand" ToolTip="Open Terminal in this directory">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="⌨️ " FontSize="12" />
                                                         <TextBlock Text="Terminal" FontSize="12" FontWeight="SemiBold" />
@@ -343,7 +427,7 @@
                                                 </Button>
 
                                                 <!-- Open in File Explorer -->
-                                                <Button Command="{Binding OpenInExplorerCommand}" Margin="0,0,6,0" Padding="10,4" Background="#1E293B" Foreground="#E2E8F0" Cursor="Hand">
+                                                <Button Command="{Binding OpenInExplorerCommand}" Margin="0,0,6,4" Padding="10,4" Background="#1E293B" Foreground="#E2E8F0" Cursor="Hand" ToolTip="Open folder in Windows File Explorer">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="📁 " FontSize="12" />
                                                         <TextBlock Text="Explorer" FontSize="12" FontWeight="SemiBold" />
@@ -353,22 +437,22 @@
                                                 <!-- Open in Browser (GitHub/GitLab) -->
                                                 <Button Command="{Binding OpenInBrowserCommand}"
                                                         Visibility="{Binding HasRemote, Converter={StaticResource BoolToVis}}"
-                                                        Margin="0,0,6,0" Padding="10,4" Background="#1E293B" Foreground="#38BDF8" Cursor="Hand">
+                                                        Margin="0,0,6,4" Padding="10,4" Background="#1E293B" Foreground="#38BDF8" Cursor="Hand" ToolTip="Open repository remote URL in browser">
                                                     <StackPanel Orientation="Horizontal">
                                                         <TextBlock Text="🌐 " FontSize="12" />
                                                         <TextBlock Text="Open Web" FontSize="12" FontWeight="SemiBold" />
                                                     </StackPanel>
                                                 </Button>
-                                            </StackPanel>
+                                            </WrapPanel>
 
                                             <!-- Status / Refreshing message -->
                                             <TextBlock Grid.Column="1" Text="{Binding ActionMessage}"
-                                                       VerticalAlignment="Center" Margin="10,0,0,0"
+                                                       VerticalAlignment="Center" Margin="10,0,10,0"
                                                        FontSize="11" Foreground="#38BDF8" FontWeight="SemiBold" />
 
                                             <!-- Git Fetch Button -->
                                             <Button Grid.Column="2" Command="{Binding FetchCommand}"
-                                                    Padding="10,4" Background="#0F172A" BorderBrush="#334155" Foreground="#94A3B8" Cursor="Hand">
+                                                    Padding="10,4" Background="#0F172A" BorderBrush="#334155" Foreground="#94A3B8" Cursor="Hand" ToolTip="Run git fetch and update remote status">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="🔄 " FontSize="11" />
                                                     <TextBlock Text="Fetch" FontSize="11" />
@@ -392,9 +476,17 @@
                         <TextBlock Text="All Repositories Clean &amp; Synchronized!" FontSize="20" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Center" />
                         <TextBlock Text="No uncommitted files, no unpushed commits, and no forgotten stashes." FontSize="13" Foreground="#9CA3AF" HorizontalAlignment="Center" Margin="0,6,0,16" />
                         <TextBlock Text="You are safe to close your laptop or switch machines." FontSize="12" Foreground="#6B7280" HorizontalAlignment="Center" Margin="0,0,0,16" />
-                        <ui:Button Command="{Binding ToggleFilterOnlyDirtyCommand}" Padding="16,6" HorizontalAlignment="Center" Appearance="Secondary">
-                            <TextBlock Text="View All Repositories" />
-                        </ui:Button>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                            <ui:Button Command="{Binding ToggleFilterOnlyDirtyCommand}" Padding="16,6" Margin="0,0,10,0" Appearance="Secondary">
+                                <TextBlock Text="View All Repositories" />
+                            </ui:Button>
+                            <ui:Button Command="{Binding OpenDonationDialogCommand}" Padding="16,6" Appearance="Primary">
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Heart24" Foreground="#FF5E7E" Margin="0,0,6,0" />
+                                    <TextBlock Text="Support Project" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </ui:Button>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 

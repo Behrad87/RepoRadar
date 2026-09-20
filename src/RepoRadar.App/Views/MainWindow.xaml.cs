@@ -51,4 +51,14 @@ public partial class MainWindow : FluentWindow
         Activate();
         Focus();
     }
+
+    private void OnSupportButtonClicked(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.ContextMenu != null)
+        {
+            fe.ContextMenu.PlacementTarget = fe;
+            fe.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            fe.ContextMenu.IsOpen = true;
+        }
+    }
 }

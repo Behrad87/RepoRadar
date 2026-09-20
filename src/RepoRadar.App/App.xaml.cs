@@ -56,6 +56,11 @@ public partial class App : System.Windows.Application
                 viewModel.OpenSettingsCommand.Execute(null);
                 _mainWindow.ShowAndActivate();
             },
+            onShowDonation: () =>
+            {
+                _mainWindow.ShowAndActivate();
+                viewModel.OpenDonationDialogCommand.Execute(null);
+            },
             onExitRequested: () =>
             {
                 _mainWindow.RequestExit();
@@ -224,6 +229,28 @@ public partial class App : System.Windows.Application
             using (var fs = File.Create(settingsOutPath))
             {
                 encoderSettings.Save(fs);
+            }
+
+            // 3. Capture Donation Dialog
+            var donationDialog = new DonationDialog();
+            if (donationDialog.Content is FrameworkElement donationElement)
+            {
+                donationElement.Width = 520;
+                donationElement.Height = 540;
+                donationElement.Measure(new System.Windows.Size(520, 540));
+                donationElement.Arrange(new Rect(0, 0, 520, 540));
+                donationElement.UpdateLayout();
+
+                var rtbDonation = new RenderTargetBitmap(520, 540, 96, 96, PixelFormats.Pbgra32);
+                rtbDonation.Render(donationElement);
+
+                var encoderDonation = new PngBitmapEncoder();
+                encoderDonation.Frames.Add(BitmapFrame.Create(rtbDonation));
+                var donationOutPath = Path.Combine(assetsDir, "reporadar_donation.png");
+                using (var fs = File.Create(donationOutPath))
+                {
+                    encoderDonation.Save(fs);
+                }
             }
         }
     }

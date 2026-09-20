@@ -292,6 +292,28 @@ public partial class MainViewModel : ObservableObject
         IsSettingsOpen = false;
     }
 
+    [RelayCommand]
+    private void OpenDonationDialog()
+    {
+        var dialog = new Views.DonationDialog
+        {
+            Owner = System.Windows.Application.Current?.MainWindow
+        };
+        dialog.ShowDialog();
+    }
+
+    [RelayCommand]
+    private void OpenSponsors() => _launcherService.OpenInBrowser("https://github.com/sponsors/Behrad87");
+
+    [RelayCommand]
+    private void OpenKofi() => _launcherService.OpenInBrowser("https://ko-fi.com/behrad87");
+
+    [RelayCommand]
+    private void OpenReymit() => _launcherService.OpenInBrowser("https://reymit.ir/behrad87");
+
+    [RelayCommand]
+    private void OpenGitHub() => _launcherService.OpenInBrowser("https://github.com/Behrad87/RepoRadar");
+
     private void CheckEndOfDayAlert()
     {
         if (!Settings.NotifyOnDirtyBeforeEndOfDay) return;

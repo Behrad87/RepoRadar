@@ -16,6 +16,7 @@ public class TrayIconManager : IDisposable
     private readonly Action _onShowDashboard;
     private readonly Action _onScanRequested;
     private readonly Action _onShowSettings;
+    private readonly Action _onShowDonation;
     private readonly Action _onExitRequested;
 
     private List<GitRepositoryInfo> _currentDirtyRepos = new();
@@ -26,12 +27,14 @@ public class TrayIconManager : IDisposable
         Action onShowDashboard,
         Action onScanRequested,
         Action onShowSettings,
+        Action onShowDonation,
         Action onExitRequested)
     {
         _launcherService = launcherService;
         _onShowDashboard = onShowDashboard;
         _onScanRequested = onScanRequested;
         _onShowSettings = onShowSettings;
+        _onShowDonation = onShowDonation;
         _onExitRequested = onExitRequested;
 
         _notifyIcon = new NotifyIcon
@@ -40,17 +43,19 @@ public class TrayIconManager : IDisposable
             Text = "RepoRadar - Git Workspace Monitor"
         };
 
-        // Load icon
+        // Load icon reliably from WPF Pack URI or disk
         try
         {
-            var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "icon.ico");
-            if (File.Exists(iconPath))
+            var resStream = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Assets/icon.ico"));
+            if (resStream != null)
             {
-                _notifyIcon.Icon = new Icon(iconPath);
+                using var stream = resStream.Stream;
+                _notifyIcon.Icon = new Icon(stream);
             }
             else
             {
-                _notifyIcon.Icon = SystemIcons.Application;
+                var iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "icon.ico");
+                _notifyIcon.Icon = File.Exists(iconPath) ? new Icon(iconPath) : SystemIcons.Application;
             }
         }
         catch
@@ -167,6 +172,9 @@ public class TrayIconManager : IDisposable
 
         var settingsItem = new ToolStripMenuItem("⚙️ Settings", null, (s, e) => _onShowSettings());
         menu.Items.Add(settingsItem);
+
+        var donateItem = new ToolStripMenuItem("💖 Support & Donate", null, (s, e) => _onShowDonation());
+        menu.Items.Add(donateItem);
 
         menu.Items.Add(new ToolStripSeparator());
 

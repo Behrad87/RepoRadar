@@ -11,6 +11,9 @@
 [![Platform](https://img.shields.io/badge/Platform-Windows%2011%20%7C%2010-blue.svg)](https://microsoft.com/windows)
 [![UI: WPF--UI](https://img.shields.io/badge/UI-Fluent%20WPF--UI%204.3-0078D4.svg)](https://github.com/lepoco/wpfui)
 [![Build & Tests](https://img.shields.io/badge/Tests-16%20Passed-brightgreen.svg)]()
+[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/Behrad87)
+[![Ko-fi](https://img.shields.io/badge/Support-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/behrad87)
+[![Reymit (Iran)](https://img.shields.io/badge/Support-Reymit%20(Iran)-00C853?logo=cashapp&logoColor=white)](https://reymit.ir/behrad87)
 
 **A system tray widget and desktop dashboard that monitors all your local Git projects and alerts you to uncommitted changes, unpushed commits, and forgotten stashes before you finish your workday.**
 
@@ -58,11 +61,22 @@ Developers and engineers who work across **10–30 local repositories simultaneo
 
 ---
 
-## 🖥️ Dashboard & Settings
+## 🖥️ Visual Showcase
 
 <div align="center">
 
+### Modern Fluent Dark Dashboard
+<img src="assets/reporadar_dashboard.png" alt="RepoRadar Dashboard Preview" width="880" />
+
+<br /><br />
+
+### Monitored Workspaces & Auto-Scan Settings
 <img src="assets/reporadar_settings.png" alt="RepoRadar Settings Dialog" width="800" />
+
+<br /><br />
+
+### Developer Support & Donation Dialog
+<img src="assets/reporadar_donation.png" alt="RepoRadar Support & Donation Dialog" width="500" />
 
 </div>
 
@@ -165,6 +179,25 @@ Run all tests:
 ```powershell
 dotnet test
 ```
+
+---
+
+## 💖 Support the Project & Donate
+
+### 💡 The Value Trade-off
+Losing half a day of unsaved code, uncommitted hotfixes, or tracking down branch merge conflicts because you switched machines or closed your laptop without pushing easily costs hundreds of dollars in lost engineering time.
+
+**RepoRadar is 100% free, forever, with zero ads, zero paywalls, and zero telemetry.**
+
+If RepoRadar quietly saved your workday from lost code or keeps your multi-repo workspace clean and organized, please consider buying the developer a coffee or sponsoring the project!
+
+### 🌍 Ways to Support
+
+| Platform | Best For | Link |
+| :--- | :--- | :--- |
+| **GitHub Sponsors** | Recurring or one-time international support (Wall of Fame) | [💖 Sponsor @Behrad87](https://github.com/sponsors/Behrad87) |
+| **Ko-fi** | Quick one-time coffee / tip via Card or PayPal ($3) | [☕ Tip on Ko-fi](https://ko-fi.com/behrad87) |
+| **Reymit (Iran / ری‌میت)** | پرداخت ریالی و آنی از داخل ایران با کلیه کارت‌های عضو شتاب | [🇮🇷 حمایت از طریق ری‌میت](https://reymit.ir/behrad87) |
 
 ---
 
